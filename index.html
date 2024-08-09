@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sticky Notes App</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            background: #333;
+            font-family: Arial, sans-serif;
+        }
+
+        #noteContainer {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            width: 80%;
+            max-width: 1200px;
+            margin-top: 80px;
+            justify-content: center;
+            position: relative;
+        }
+
+        .note {
+            width: 200px;
+            height: 200px;
+            background: #222;
+            border-radius: 10px;
+            box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            position: relative;
+            cursor: pointer;
+            transform: scale(1);
+            transition: transform 0.2s ease;
+            z-index: 1;
+        }
+
+        .note:hover {
+            transform: scale(1.05);
+        }
+
+        .note textarea {
+            width: 100%;
+            height: calc(100% - 40px); /* Adjust for the delete button */
+            border: none;
+            outline: none;
+            resize: none;
+            background: none;
+            color: #fff;
+            font-size: 16px;
+        }
+
+        .note .deleteBtn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #ff4757; /* Red color */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            display: block; /* Show delete button by default */
+            z-index: 10; /* Ensure button is above other elements */
+        }
+
+        #searchContainer {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        #searchInput {
+            width: 200px;
+            padding: 8px;
+            border-radius: 15px;
+            border: 1px solid #fff;
+            outline: none;
+            font-size: 16px;
+            text-align: center;
+            box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #createNoteBtn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #ff6b81;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease;
+        }
+
+        #createNoteBtn:hover {
+            background-color: #ff4757;
+        }
+    </style>
+</head>
+<body>
+    <div id="searchContainer">
+        <input type="text" id="searchInput" placeholder="Search notes">
+    </div>
+    <div id="noteContainer">
+        <!-- Sticky notes will be added here dynamically -->
+    </div>
+    <div id="createNoteBtn">+</div>
+
+    <script>
+        const noteContainer = document.getElementById('noteContainer');
+        const searchInput = document.getElementById('searchInput');
+        const createNoteBtn = document.getElementById('createNoteBtn');
+
+        // Load notes from localStorage
+        function loadNotes() {
+            const notes = JSON.parse(localStorage.getItem('stickyNotes')) || [];
+            notes.forEach(note => {
+                createNoteElement(note.content);
+            });
+        }
+
+        // Save notes to localStorage
+        function saveNotes() {
+            const notes = [];
+            document.querySelectorAll('.note textarea').forEach(textarea => {
+                notes.push({ content: textarea.value });
+            });
+            localStorage.setItem('stickyNotes', JSON.stringify(notes));
+        }
+
+        // Function to create a new sticky note element
+        function createNoteElement(content = '') {
+            const note = document.createElement('div');
+            note.className = 'note';
+
+            const textarea = document.createElement('textarea');
+            textarea.value = content;
+            note.appendChild(textarea);
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'deleteBtn';
+            deleteBtn.textContent = 'Delete';
+            note.appendChild(deleteBtn);
+
+            deleteBtn.addEventListener('click', () => {
+                note.remove();
+                saveNotes();
+            });
+
+            // Ensure delete button is always shown for new notes
+            note.classList.add('showDeleteBtn');
+
+            // Hide note on double-click
+            note.addEventListener('dblclick', (e) => {
+                e.stopPropagation(); // Prevent triggering other events
+                note.style.display = 'none';
+                saveNotes();
+            });
+
+            // Save notes when content changes
+            textarea.addEventListener('input', saveNotes);
+
+            noteContainer.appendChild(note);
+        }
+
+        // Create a new sticky note
+        function createNote() {
+            createNoteElement();
+            saveNotes();
+        }
+
+        // Plus button to create a new note
+        createNoteBtn.addEventListener('click', createNote);
+
+        // Search functionality
+        searchInput.addEventListener('input', () => {
+            const keyword = searchInput.value.trim().toUpperCase();
+            if (keyword === 'KHUL JA SIMSIM') {
+                const notes = document.querySelectorAll('.note');
+                notes.forEach(note => {
+                    note.style.display = 'block';
+                });
+                searchInput.value = ''; // Clear the input field
+                saveNotes();
+            }
+        });
+
+        // Load saved notes on page load
+        loadNotes();
+    </script>
+</body>
+</html>
